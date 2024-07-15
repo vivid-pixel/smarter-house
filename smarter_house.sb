@@ -1,15 +1,13 @@
 ﻿; Smarter House: A web application for documenting my home's technology
 EnableExplicit
 
-Enumeration PageElements
+Enumeration
   #WINDOW
   #NAVIGATION
+  #HIGH_PRIORITY
+  #LOW_PRIORITY
+  #INACTIVE_PRIORITY
 EndEnumeration
-
-Enumeration Devices
-  #NETWORK
-EndEnumeration
-
 
 Procedure IndexPage()
   HtmlMobile("<h1>Welcome home!</h1>")
@@ -35,47 +33,42 @@ Procedure NetworkPage()
     description.s
     image.s
     url.s
-    priority.s
+    priority.i
   EndStructure
+  
   NewList devices.NetworkDevice()
   
   ; SSID Overview
-  ; An SSID is essentially a wireless network name, used so you can differentiate your wifi connection from that of your neighbors. In my home these are the main SSIDs available: 
+  ; An SSID is essentially a wireless network name, used so you can differentiate your wifi
+  ; connection from that of your neighbors. In my home these are the main SSIDs available: 
   ;* Help, I'm stuck in VR! is a faster network on the 5Ghz band, for any newer devices that support it 
   ;* Help, I'm stuck in 2.4Ghz! uses a slower 2.4Ghz band, mainly available for compatibility with older or cheaper devices, or when extra range is needed 
   ;* Spicy Water is a hidden 2.4Ghz network for smart bulbs, TVs, whatever else (to easily pair new devices, broadcast the SSID temporarily)
- 
+  
   ; High Priority Equipment
-  ; This hardware must be online and operational for Internet access. If network-wide problems occur, reboot all three in the order listed.
+  ; This hardware must be online and operational for Internet access. If network-wide problems
+  ; occur, reboot all three in the order listed.
   AddElement(devices())
   devices()\name = "Calix 803G GigaPoint" 
   devices()\description = "Wall mounted Optical Network Terminal that accepts fiber connection" + 
-                           " from outside the home. Connects to the Archer C4000 via ethernet cable."
+                          " from outside the home. Connects to the Archer C4000 via ethernet cable."
   devices()\url = ""
   devices()\image = ""
+  devices()\priority = #HIGH_PRIORITY
   
   AddElement(devices())
   devices()\name = "TP-Link Archer C4000" 
   devices()\description = "Primary router that is used for our wireless network broadcast." + 
-                           " Connects over ethernet to the Zyxel C3510XZ, as well as the" + 
-                           " Pi."
+                          " Connects over ethernet to the Zyxel C3510XZ, as well as the" + 
+                          " Pi."
   devices()\url = "http://192.168.0.1/"
   devices()\image = ""
-  
-  AddElement(devices())
-  devices()\name = "Raspberry Pi 3 [RETIRED]" 
-  devices()\description = "A formerly crucial part of the home network configuration, this" + 
-                           " micro computer is set up as a 'Pi Hole' Linux server which blocks" + 
-                           " advertisements And malicious Or malware-infected websites. All" + 
-                           " Internet traffic is routed through here And so much like the ONT" + 
-                           " and primary router, it may sometimes need to be rebooted if" + 
-                           " connection difficulties occur."
-  devices()\url = ""
-  devices()\image = ""
+  devices()\priority = #HIGH_PRIORITY
   
   ; Low Priority Equipment
-  ; If any of this hardware stops working, home functionality may be hindered, but issues with these devices should not bring down the network. Restart individually depending on the issue or situation. 
-  
+  ; If any of this hardware stops working, home functionality may be hindered, but issues with 
+  ; these devices should not bring down the network. Restart individually depending on the issue
+  ; or situation. 
   AddElement(devices())
   devices()\name = "Zyxel C3510XZ" 
   devices()\description = "Secondary router used for light bulbs, electrical plugs, cameras, or" + 
@@ -83,12 +76,14 @@ Procedure NetworkPage()
                           " main network. Connected to the primary router."
   devices()\url = "http://192.168.0.163/"
   devices()\image = ""
+  devices()\priority = #LOW_PRIORITY
   
   AddElement(devices())
   devices()\name = "Digi CPX2e ZB" 
   devices()\description = "Solar panel gateway for monitoring energy production via the Tesla app."
   devices()\url = "http://192.168.0.144/"
   devices()\image = ""
+  devices()\priority = #LOW_PRIORITY
   
   AddElement(devices())
   devices()\name = "LiftMaster 828LM" 
@@ -96,26 +91,41 @@ Procedure NetworkPage()
                           " be controlled with the MyQ app but mainly used with the Alarm.com app."
   devices()\url = "http://192.168.0.161/"
   devices()\image = ""
+  devices()\priority = #LOW_PRIORITY
   
-  ListMobile(#NETWORK, #PB_Mobile_InSet)
+  ; Inactive Equipment - not currently in use, or retired
+  AddElement(devices())
+  devices()\name = "Raspberry Pi 3 [RETIRED]" 
+  devices()\description = "A formerly crucial part of the home network configuration, this" + 
+                          " micro computer is set up as a 'Pi Hole' Linux server which blocks" + 
+                          " advertisements And malicious Or malware-infected websites. All" + 
+                          " Internet traffic is routed through here And so much like the ONT" + 
+                          " and primary router, it may sometimes need to be rebooted if" + 
+                          " connection difficulties occur."
+  devices()\url = ""
+  devices()\image = ""
+  devices()\priority = #INACTIVE_PRIORITY
+  
+  ; Separate the list into 3 lists, based on priority.
+  ListMobile(#HIGH_PRIORITY, #PB_Mobile_InSet)
+  ListMobile(#LOW_PRIORITY, #PB_Mobile_InSet)
+  ListMobile(#INACTIVE_PRIORITY, #PB_Mobile_InSet)
+  
+  ; Add section headers to lists
+  AddListMobileItem(#HIGH_PRIORITY, "High Priority Equipment", #PB_Mobile_Header)
+  AddListMobileItem(#LOW_PRIORITY, "Low Priority Equipment", #PB_Mobile_Header)
+  AddListMobileItem(#INACTIVE_PRIORITY, "Retired Equipment", #PB_Mobile_Header)
   
   ForEach devices()
-    If AddListMobileItem(#NETWORK, "", #PB_Mobile_Container | #PB_Mobile_LongDivider | 
-                                           #PB_Mobile_Tappable | #PB_Mobile_Chevron)
-      TextMobile(#PB_Any, devices()\name + " " + devices()\description)
+    ; Sort the devices into priority-based lists
+    If AddListMobileItem(devices()\priority, "", #PB_Mobile_Container | #PB_Mobile_LongDivider | 
+                                                 #PB_Mobile_Tappable | #PB_Mobile_Chevron)
+      TextMobile(#PB_Any, devices()\name + " | " + devices()\description)
       CreateImage(0, 150, 150, 24, RGB(0, 150, 255))
       ImageMobile(#PB_Any, ImageID(0), #PB_Mobile_Right) ; Placeholder image
       CloseMobileContainer()
     EndIf
   Next
-  
-  ;         ForEach devices()
-  ;             HtmlMobile("<h3>" + devices()\name + "</h3>")
-  ;             ;TextMobile(#PB_Any, devices()\name)
-  ;             ;HtmlMobile("</h3>")
-  ;             HtmlMobile("<p>" + devices()\description + "</p>")
-  ;             HtmlMobile("<br>")
-  ;         Next
 EndProcedure
 
 
@@ -125,7 +135,7 @@ EndProcedure
 
 
 Procedure AppMain()
-  If ContainerMobile(#WINDOW, #PB_Mobile_Page, "margin: 16px")
+  If ContainerMobile(#WINDOW, #PB_Mobile_Page)
     ; Introduction (Index/Home)
     If ContainerMobile(#PB_Any, #PB_Mobile_Template, "", "index")
       IndexPage()
@@ -138,11 +148,6 @@ Procedure AppMain()
       CloseMobileContainer()
     EndIf
     
-;     If ContainerMobile(#PB_Any, #PB_Mobile_Template, "", "contact")
-;       LoadContact()
-;       CloseMobileContainer()
-;     EndIf
-    
     ; Header
     If ToolBarMobile(#PB_Any)
       TextMobile(#PB_Any, "Smarter House")
@@ -153,7 +158,6 @@ Procedure AppMain()
     If TabBarMobile(#NAVIGATION, #PB_Mobile_Swipeable)
       AddTabBarMobileItem(#NAVIGATION, "Home Page", "md-home", "md-home", "index")
       AddTabBarMobileItem(#NAVIGATION, "Network", "md-network", "md-network", "network")
-      ;AddTabBarMobileItem(#NAVIGATION, "Contact", "md-account-box-mail", "md-account-box-mail", "contact")
       CloseMobileContainer()
     EndIf
     
@@ -165,7 +169,8 @@ EndProcedure
 AppMain()
 
 ; IDE Options = SpiderBasic 3.00 Beta 5 (Windows - x86)
-; CursorPosition = 18
+; CursorPosition = 137
+; FirstLine = 127
 ; Folding = -
 ; WindowTheme = aeroglass
 ; GadgetTheme = claro
