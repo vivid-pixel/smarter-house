@@ -4,9 +4,9 @@ EnableExplicit
 Enumeration
   #WINDOW
   #NAVIGATION
-  #HIGH_PRIORITY
-  #LOW_PRIORITY
-  #INACTIVE_PRIORITY
+  #PRIORITY_HIGH
+  #PRIORITY_LOW
+  #PRIORITY_NONE
 EndEnumeration
 
 Procedure IndexPage()
@@ -35,26 +35,42 @@ Procedure NetworkPage()
     url.s
     priority.i
   EndStructure
-  
   NewList devices.NetworkDevice()
   
-  ; SSID Overview
-  ; An SSID is essentially a wireless network name, used so you can differentiate your wifi
-  ; connection from that of your neighbors. In my home these are the main SSIDs available: 
-  ;* Help, I'm stuck in VR! is a faster network on the 5Ghz band, for any newer devices that support it 
-  ;* Help, I'm stuck in 2.4Ghz! uses a slower 2.4Ghz band, mainly available for compatibility with older or cheaper devices, or when extra range is needed 
-  ;* Spicy Water is a hidden 2.4Ghz network for smart bulbs, TVs, whatever else (to easily pair new devices, broadcast the SSID temporarily)
+  
+  HtmlMobile("<h2>SSID Overview</h2>")
+  HtmlMobile("<p><ul>")
+  HtmlMobile("An SSID is a wireless network's name which is used to differentiate your wifi" + 
+             " connection from that of your neighbors, for example. In my home these are the" + 
+             " main SSIDs available:")
+  HtmlMobile("")
+  HtmlMobile("<li><em>Help, I'm stuck in VR!</em> is a faster network on the 5Ghz band, for any" + 
+             " newer devices that support it</li>")
+  HtmlMobile("<li><em>Help, I'm stuck in 2.4Ghz!</em> uses a slower 2.4Ghz band, mainly available for " + 
+             " compatibility with older or cheaper devices, or when extra range is needed.</li>")
+  HtmlMobile("<li><em>Spicy Water</em> is a hidden 2.4Ghz network for smart bulbs, TVs, whatever else" + 
+             " (to easily pair new devices, broadcast the SSID temporarily)</li>")
+  HtmlMobile("</ul></p>")
+  
+  HtmlMobile("<h2>Network Equipment Overview</h2>")
+  HtmlMobile("<p><ul>")
+  HtmlMobile("The devices on my network have been divided by priority:")
+  HtmlMobile("<li><em>High priority equipment</em> must be online and operational for" + 
+             " Internet access. If network-wide problems occur, reboot these devices in the" + 
+             " order listed.</li>")
+  HtmlMobile("<li>If <em>low priority equipment</em> stops working, home functionality" + 
+             " may be hindered, but issues with these devices should not bring down the" + 
+             " network. Restart individually, depending on the issue or situation.</li>")
+  HtmlMobile("</ul></p>")
   
   ; High Priority Equipment
-  ; This hardware must be online and operational for Internet access. If network-wide problems
-  ; occur, reboot all three in the order listed.
   AddElement(devices())
   devices()\name = "Calix 803G GigaPoint" 
   devices()\description = "Wall mounted Optical Network Terminal that accepts fiber connection" + 
                           " from outside the home. Connects to the Archer C4000 via ethernet cable."
   devices()\url = ""
   devices()\image = ""
-  devices()\priority = #HIGH_PRIORITY
+  devices()\priority = #PRIORITY_HIGH
   
   AddElement(devices())
   devices()\name = "TP-Link Archer C4000" 
@@ -63,12 +79,9 @@ Procedure NetworkPage()
                           " Pi."
   devices()\url = "http://192.168.0.1/"
   devices()\image = ""
-  devices()\priority = #HIGH_PRIORITY
+  devices()\priority = #PRIORITY_HIGH
   
   ; Low Priority Equipment
-  ; If any of this hardware stops working, home functionality may be hindered, but issues with 
-  ; these devices should not bring down the network. Restart individually depending on the issue
-  ; or situation. 
   AddElement(devices())
   devices()\name = "Zyxel C3510XZ" 
   devices()\description = "Secondary router used for light bulbs, electrical plugs, cameras, or" + 
@@ -76,14 +89,14 @@ Procedure NetworkPage()
                           " main network. Connected to the primary router."
   devices()\url = "http://192.168.0.163/"
   devices()\image = ""
-  devices()\priority = #LOW_PRIORITY
+  devices()\priority = #PRIORITY_LOW
   
   AddElement(devices())
   devices()\name = "Digi CPX2e ZB" 
   devices()\description = "Solar panel gateway for monitoring energy production via the Tesla app."
   devices()\url = "http://192.168.0.144/"
   devices()\image = ""
-  devices()\priority = #LOW_PRIORITY
+  devices()\priority = #PRIORITY_LOW
   
   AddElement(devices())
   devices()\name = "LiftMaster 828LM" 
@@ -91,7 +104,7 @@ Procedure NetworkPage()
                           " be controlled with the MyQ app but mainly used with the Alarm.com app."
   devices()\url = "http://192.168.0.161/"
   devices()\image = ""
-  devices()\priority = #LOW_PRIORITY
+  devices()\priority = #PRIORITY_LOW
   
   ; Inactive Equipment - not currently in use, or retired
   AddElement(devices())
@@ -104,17 +117,17 @@ Procedure NetworkPage()
                           " connection difficulties occur."
   devices()\url = ""
   devices()\image = ""
-  devices()\priority = #INACTIVE_PRIORITY
+  devices()\priority = #PRIORITY_NONE
   
   ; Separate the list into 3 lists, based on priority.
-  ListMobile(#HIGH_PRIORITY, #PB_Mobile_InSet)
-  ListMobile(#LOW_PRIORITY, #PB_Mobile_InSet)
-  ListMobile(#INACTIVE_PRIORITY, #PB_Mobile_InSet)
+  ListMobile(#PRIORITY_HIGH, #PB_Mobile_InSet)
+  ListMobile(#PRIORITY_LOW, #PB_Mobile_InSet)
+  ListMobile(#PRIORITY_NONE, #PB_Mobile_InSet)
   
   ; Add section headers to lists
-  AddListMobileItem(#HIGH_PRIORITY, "High Priority Equipment", #PB_Mobile_Header)
-  AddListMobileItem(#LOW_PRIORITY, "Low Priority Equipment", #PB_Mobile_Header)
-  AddListMobileItem(#INACTIVE_PRIORITY, "Retired Equipment", #PB_Mobile_Header)
+  AddListMobileItem(#PRIORITY_HIGH, "High Priority Equipment", #PB_Mobile_Header)
+  AddListMobileItem(#PRIORITY_LOW, "Low Priority Equipment", #PB_Mobile_Header)
+  AddListMobileItem(#PRIORITY_NONE, "Retired Equipment", #PB_Mobile_Header)
   
   ForEach devices()
     ; Sort the devices into priority-based lists
@@ -169,8 +182,8 @@ EndProcedure
 AppMain()
 
 ; IDE Options = SpiderBasic 3.00 Beta 5 (Windows - x86)
-; CursorPosition = 137
-; FirstLine = 127
+; CursorPosition = 60
+; FirstLine = 27
 ; Folding = -
 ; WindowTheme = aeroglass
 ; GadgetTheme = claro
